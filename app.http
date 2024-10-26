@@ -1,0 +1,21 @@
+//AP1 Get All Products 
+
+http://localhost:3000/products/
+
+API2 POST Product
+
+POST http://localhost:3000/players/3/
+Content-Type: application/json
+
+{
+  {
+    "name": "Product 2",
+    "price": 2024,
+    "quantity": 5
+    }
+}
+
+API3 Get Products Totall
+
+http://localhost:3000/products/total 
+
