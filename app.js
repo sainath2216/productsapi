@@ -18,10 +18,10 @@ const initializeDBAndServer = async () => {
 
         await db.exec(`
             CREATE TABLE IF NOT EXISTS products (
-                id ,
-                name ,
-                price ,
-                quantity 
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                name TEXT NOT NULL,
+                price REAL NOT NULL,
+                quantity INTEGER NOT NULL
             );
         `);
 
@@ -36,42 +36,45 @@ const initializeDBAndServer = async () => {
 initializeDBAndServer();
 
 app.get('/', (request, response) => {
-    res.send('Welcome to the Product API!');
+    response.send('Welcome to the Product API!');
 });
 
 // Add product 
 app.post('/products', async (request, response) => {
     try {
-        const { name, price, quantity } = req.body;
+        const { name, price, quantity } = request.body;
 
         if (!name || price == null || quantity == null) {
-            return res.status(400).json({ error: 'Please provide name, price, and quantity' });
+            return response.status(400).json({ error: 'Please provide name, price, and quantity' });
         }
+
         const insertQuery = `
             INSERT INTO products (name, price, quantity)
             VALUES (?, ?, ?);
         `;
         await db.run(insertQuery, [name, price, quantity]);
 
-        res.status(200).json({ message: 'Product added successfully' });
+        response.status(201).json({ message: 'Product added successfully' });
     } catch (error) {
-        res.status(404).json({ error: 'Failed to add product' });
+        console.error(error); 
+        response.status(500).json({ error: 'Failed to add product: ' + error.message });
     }
 });
 
-//All products
+// Get all products
 app.get('/products/', async (request, response) => {
     try {
-        const allProductsQuery = `SELECT * FROM products;`
-        const allProducts = await db.all(allProductsQuery)
-        response.send(allProducts,)
+        const allProductsQuery = `SELECT * FROM products;`;
+        const allProducts = await db.all(allProductsQuery);
+        response.json(allProducts);  
         
-    } catch {
-        res.status(404).json({ error: 'Failed gget product' });
+    } catch (error) {
+        console.error(error); 
+        response.status(500).json({ error: 'Failed to get products: ' + error.message });
     }
-})
+});
 
-// Products total
+// Get total 
 app.get('/products/total', async (request, response) => {
     try {
         const query = `SELECT SUM(price * quantity) AS totalValue FROM products;`;
@@ -79,8 +82,10 @@ app.get('/products/total', async (request, response) => {
         response.json({ totalValue: result.totalValue });
 
     } catch (error) {
-        res.status(404).json({ error: 'Failed to calculate total' });
+        console.error(error); 
+        response.status(500).json({ error: 'Failed to calculate total: ' + error.message });
     }
 });
+
 
 module.exports = app;
